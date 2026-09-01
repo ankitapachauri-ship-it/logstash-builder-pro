@@ -9,6 +9,7 @@ import { ImportModal } from './components/modals/ImportModal'
 import { GrokDebugger } from './components/modals/GrokDebugger'
 import { ConfigPreviewModal } from './components/modals/ConfigPreviewModal'
 import { PipelineSettingsModal } from './components/modals/PipelineSettingsModal'
+import { PipelinePromptModal } from './components/modals/PipelinePromptModal'
 import { HomePage } from './components/home/HomePage'
 import { useBuilderStore } from './store/useBuilderStore'
 
@@ -20,6 +21,7 @@ function BuilderApp() {
   const { darkMode, setShowTemplates, showPreview, setShowPreview } = useBuilderStore()
   const [view, setView] = useState<'home' | 'builder'>('home')
   const [showPipelineSettings, setShowPipelineSettings] = useState(false)
+  const [showAIBuild, setShowAIBuild] = useState(false)
 
   return (
     <EuiProvider colorMode={darkMode ? 'dark' : 'light'}>
@@ -52,7 +54,7 @@ function BuilderApp() {
             background: 'var(--euiPageBackgroundColor)',
           }}
         >
-          <Toolbar onHome={() => setView('home')} />
+          <Toolbar onHome={() => setView('home')} onAIBuild={() => setShowAIBuild(true)} />
           <PipelineTabs onOpenSettings={() => setShowPipelineSettings(true)} />
           <AddPluginBar />
 
@@ -75,6 +77,7 @@ function BuilderApp() {
           <GrokDebugger />
           {showPreview && <ConfigPreviewModal onClose={() => setShowPreview(false)} />}
           {showPipelineSettings && <PipelineSettingsModal onClose={() => setShowPipelineSettings(false)} />}
+          {showAIBuild && <PipelinePromptModal onClose={() => setShowAIBuild(false)} />}
         </div>
       )}
     </EuiProvider>

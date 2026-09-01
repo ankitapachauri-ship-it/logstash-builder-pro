@@ -48,7 +48,7 @@ function generatePipelinesYml(pipelineName: string, settings: PipelineSettings):
   return lines.join('\n')
 }
 
-export function Toolbar({ onHome }: { onHome?: () => void }) {
+export function Toolbar({ onHome, onAIBuild }: { onHome?: () => void; onAIBuild?: () => void }) {
   const {
     logstashVersion,
     darkMode,
@@ -122,6 +122,20 @@ export function Toolbar({ onHome }: { onHome?: () => void }) {
                   style={{ minWidth: 140 }}
                 />
               </EuiFlexItem>
+
+              {/* AI Build button */}
+              {onAIBuild && (
+                <EuiFlexItem grow={false}>
+                  <EuiButton
+                    iconType="sparkles"
+                    size="s"
+                    color="accent"
+                    onClick={onAIBuild}
+                  >
+                    AI Build
+                  </EuiButton>
+                </EuiFlexItem>
+              )}
 
               <EuiFlexItem grow={false}>
                 <EuiButtonEmpty iconType="importAction" size="s" onClick={() => setShowImport(true)}>
