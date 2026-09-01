@@ -40,6 +40,10 @@ function BuilderApp() {
               setView('builder')
               setShowTemplates(true)
             }}
+            onAIBuild={() => {
+              setView('builder')
+              setShowAIBuild(true)
+            }}
           />
         </div>
       ) : (
@@ -77,9 +81,11 @@ function BuilderApp() {
           <GrokDebugger />
           {showPreview && <ConfigPreviewModal onClose={() => setShowPreview(false)} />}
           {showPipelineSettings && <PipelineSettingsModal onClose={() => setShowPipelineSettings(false)} />}
-          {showAIBuild && <PipelinePromptModal onClose={() => setShowAIBuild(false)} />}
         </div>
       )}
+
+      {/* AI Build modal — available from both home and builder */}
+      {showAIBuild && <PipelinePromptModal onClose={() => setShowAIBuild(false)} />}
     </EuiProvider>
   )
 }

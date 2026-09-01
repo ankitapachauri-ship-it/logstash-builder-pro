@@ -11,6 +11,7 @@ import { useBuilderStore } from '../../store/useBuilderStore'
 interface HomePageProps {
   onGetStarted: () => void
   onBrowseTemplates: () => void
+  onAIBuild: () => void
 }
 
 const PIPELINE = [
@@ -20,14 +21,14 @@ const PIPELINE = [
 ]
 
 const FEATURES = [
-  { icon: 'node',         label: 'Visual canvas',       detail: 'Drag-and-drop plugins onto a canvas — no config syntax' },
-  { icon: 'document',     label: 'Live .conf preview',  detail: 'Config regenerates instantly with every change'          },
-  { icon: 'bug',          label: 'Grok debugger',       detail: 'Test patterns against sample log lines in real time'    },
-  { icon: 'importAction', label: 'Import parser',       detail: 'Paste an existing .conf to reverse-parse it on canvas'  },
-  { icon: 'wrench',       label: 'Migration assistant', detail: 'Detects deprecated 8.x options and suggests 9.x fixes'  },
+  { icon: 'sparkles',     label: 'AI pipeline builder', detail: 'Describe your pipeline in plain English — Claude and Jina build it for you', highlight: true  },
+  { icon: 'node',         label: 'Visual canvas',        detail: 'Drag-and-drop plugins onto a canvas — no config syntax'                                     },
+  { icon: 'document',     label: 'Live .conf preview',   detail: 'Config regenerates instantly with every change'                                             },
+  { icon: 'bug',          label: 'Grok debugger',        detail: 'Test patterns against sample log lines in real time'                                       },
+  { icon: 'importAction', label: 'Import & parse',       detail: 'Paste an existing .conf to reverse-parse it on canvas'                                     },
 ]
 
-export function HomePage({ onGetStarted, onBrowseTemplates }: HomePageProps) {
+export function HomePage({ onGetStarted, onBrowseTemplates, onAIBuild }: HomePageProps) {
   const { euiTheme, colorMode } = useEuiTheme()
   const { darkMode, toggleDarkMode } = useBuilderStore()
   const isDark = colorMode === 'DARK'
@@ -154,10 +155,64 @@ export function HomePage({ onGetStarted, onBrowseTemplates }: HomePageProps) {
             }}>
               logstash.conf
             </code>{' '}
-            generate in real time. Download and deploy.
+            generate in real time. Or just describe what you want and let AI build it.
           </p>
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          {/* AI Build highlight card */}
+          <div
+            onClick={onAIBuild}
+            style={{
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(13,26,54,0.9) 0%, rgba(20,15,40,0.9) 100%)'
+                : 'linear-gradient(135deg, #f0f4ff 0%, #f8f0ff 100%)',
+              border: `1px solid ${isDark ? 'rgba(99,102,241,0.35)' : 'rgba(99,102,241,0.25)'}`,
+              borderRadius: 10,
+              padding: '14px 18px',
+              maxWidth: 380,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              transition: 'border-color 0.15s, box-shadow 0.15s',
+              boxShadow: isDark
+                ? '0 0 0 0 transparent'
+                : '0 1px 6px rgba(99,102,241,0.08)',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = isDark ? 'rgba(139,92,246,0.6)' : 'rgba(99,102,241,0.5)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = isDark
+                ? '0 0 20px rgba(99,102,241,0.15)'
+                : '0 4px 16px rgba(99,102,241,0.14)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = isDark ? 'rgba(99,102,241,0.35)' : 'rgba(99,102,241,0.25)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = isDark ? '0 0 0 0 transparent' : '0 1px 6px rgba(99,102,241,0.08)'
+            }}
+          >
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: isDark ? 'rgba(139,92,246,0.2)' : 'rgba(99,102,241,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <EuiIcon type="sparkles" size="m" color="accent" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.textPrimary }}>
+                ✨ Build with AI
+              </p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: C.textSubdued, lineHeight: 1.4 }}>
+                Describe your pipeline in plain English → Claude + Jina build it
+              </p>
+            </div>
+            <EuiIcon type="arrowRight" size="s" color="subdued" />
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <EuiButton fill size="m" iconType="arrowRight" iconSide="right" onClick={onGetStarted}>
               Open Builder
             </EuiButton>
@@ -250,16 +305,24 @@ export function HomePage({ onGetStarted, onBrowseTemplates }: HomePageProps) {
         {FEATURES.map((f, i) => (
           <div
             key={f.label}
+            onClick={f.highlight ? onAIBuild : undefined}
             style={{
               padding: '28px 20px',
               borderRight: i < FEATURES.length - 1 ? `1px solid ${C.border}` : 'none',
               display: 'flex',
               flexDirection: 'column',
               gap: 10,
+              cursor: f.highlight ? 'pointer' : 'default',
+              background: f.highlight
+                ? isDark ? 'rgba(99,102,241,0.05)' : 'rgba(99,102,241,0.03)'
+                : 'transparent',
+              transition: 'background 0.15s',
             }}
+            onMouseEnter={f.highlight ? e => { (e.currentTarget as HTMLDivElement).style.background = isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)' } : undefined}
+            onMouseLeave={f.highlight ? e => { (e.currentTarget as HTMLDivElement).style.background = isDark ? 'rgba(99,102,241,0.05)' : 'rgba(99,102,241,0.03)' } : undefined}
           >
-            <EuiIcon type={f.icon as any} size="m" color="primary" />
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.textPrimary }}>
+            <EuiIcon type={f.icon as any} size="m" color={f.highlight ? 'accent' : 'primary'} />
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: f.highlight ? C.accentColor : C.textPrimary }}>
               {f.label}
             </p>
             <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: C.textSubdued }}>
