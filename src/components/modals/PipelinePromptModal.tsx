@@ -196,7 +196,7 @@ export function PipelinePromptModal({ onClose }: { onClose: () => void }) {
             <EuiFlexItem>
               <EuiFormRow
                 label="Anthropic API key"
-                helpText={<a href="https://console.anthropic.com" target="_blank" rel="noreferrer">Get a key at console.anthropic.com</a>}
+                helpText={<><a href="https://console.anthropic.com" target="_blank" rel="noreferrer">console.anthropic.com</a> — set a spending limit on your key to cap blast radius</>}
               >
                 <EuiFieldPassword
                   compressed
@@ -209,7 +209,7 @@ export function PipelinePromptModal({ onClose }: { onClose: () => void }) {
           </EuiFlexGroup>
           <EuiSpacer size="xs" />
           <EuiText size="xs" color="subdued">
-            Keys are saved to your browser&apos;s localStorage and never leave your machine.{' '}
+            Keys are saved to <strong>sessionStorage</strong> (cleared when you close this tab) and never leave your machine.{' '}
             <EuiButtonEmpty
               size="xs"
               flush="left"

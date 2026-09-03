@@ -22,7 +22,7 @@ import {
   EuiHorizontalRule,
 } from '@elastic/eui'
 import { useBuilderStore } from '../../store/useBuilderStore'
-import { testGrok, suggestGrok } from '../../lib/grok'
+import { testGrokAsync, suggestGrok } from '../../lib/grok'
 import type { GrokTestResult } from '../../lib/grok'
 
 export function GrokDebugger() {
@@ -30,6 +30,7 @@ export function GrokDebugger() {
   const [pattern, setPattern] = useState('')
   const [sample, setSample] = useState('')
   const [result, setResult] = useState<GrokTestResult | null>(null)
+  const [testing, setTesting] = useState(false)
   const [smartEscape, setSmartEscape] = useState(false)
 
   // Auto-suggest pattern when sample is filled and pattern is empty
@@ -50,7 +51,13 @@ export function GrokDebugger() {
 
   if (!showGrok) return null
 
-  const run = () => setResult(testGrok(pattern, sample))
+  const run = async () => {
+    setTesting(true)
+    setResult(null)
+    const r = await testGrokAsync(pattern, sample)
+    setResult(r)
+    setTesting(false)
+  }
 
   const rerunSuggest = () => {
     if (sample.trim()) {
@@ -138,11 +145,12 @@ export function GrokDebugger() {
         <EuiButton
           fill
           onClick={run}
-          disabled={!pattern.trim() || !sample.trim()}
+          isLoading={testing}
+          isDisabled={!pattern.trim() || !sample.trim() || testing}
           fullWidth
           iconType="play"
         >
-          Test Pattern
+          {testing ? 'Testing…' : 'Test Pattern'}
         </EuiButton>
 
         {result && (

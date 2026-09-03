@@ -56,6 +56,15 @@ function compile(pattern: string): { regex: RegExp; fields: Record<string, strin
   };
 
   const source = oniToJs(expand(pattern, 0));
+
+  // F-06: ReDoS pre-flight — reject patterns whose expanded source exceeds
+  // 50 KB. Catastrophically backtracking regexes tend to be very long after
+  // full expansion (e.g. repeated GREEDYDATA). This check is O(1) and fires
+  // before we hand the string to the JS engine.
+  if (source.length > 50_000) {
+    throw new Error(`Pattern too complex after expansion (${source.length} chars). Simplify or break into smaller patterns.`);
+  }
+
   return { regex: new RegExp(source), fields };
 }
 
@@ -81,6 +90,33 @@ export function testGrok(pattern: string, sample: string): GrokTestResult {
     .filter(([g]) => groups[g] !== undefined)
     .map(([g, display]) => ({ name: display, value: String(groups[g]) }));
   return { status: "match", fields };
+}
+
+/**
+ * F-06: Async wrapper that runs testGrok in a Web Worker with a 3-second timeout.
+ * If the pattern causes catastrophic backtracking the worker is terminated and an
+ * error result is returned — the main thread stays responsive throughout.
+ */
+export function testGrokAsync(pattern: string, sample: string): Promise<GrokTestResult> {
+  return new Promise((resolve) => {
+    // Vite's ?worker import syntax instantiates a Worker from the module
+    const worker = new Worker(new URL('./grok.worker.ts', import.meta.url), { type: 'module' })
+    const timer = setTimeout(() => {
+      worker.terminate()
+      resolve({ status: 'error', message: 'Pattern timed out after 3 s — likely catastrophic backtracking. Simplify the pattern.' })
+    }, 3000)
+    worker.onmessage = (e: MessageEvent<GrokTestResult>) => {
+      clearTimeout(timer)
+      worker.terminate()
+      resolve(e.data)
+    }
+    worker.onerror = (e) => {
+      clearTimeout(timer)
+      worker.terminate()
+      resolve({ status: 'error', message: e.message ?? 'Worker error' })
+    }
+    worker.postMessage({ pattern, sample })
+  })
 }
 
 /** Extract the first pattern from a grok `match` value ("field: pattern" lines). */

@@ -5,16 +5,18 @@
 const JINA_API_URL = 'https://api.jina.ai/v1/embeddings'
 const JINA_MODEL = 'jina-embeddings-v3'
 
-// ── localStorage key names ────────────────────────────────────────────────────
+// ── Storage key names ─────────────────────────────────────────────────────────
+// F-02: API keys use sessionStorage (cleared on tab close, not persisted to disk).
+//        Embedding cache stays in localStorage — it's large, safe, and expensive to rebuild.
 const KEY_JINA = 'lb_jina_api_key'
 const KEY_ANTHROPIC = 'lb_anthropic_api_key'
 const KEY_PLUGIN_CACHE = 'lb_plugin_embeddings_v1'
 
 // ── Key management ────────────────────────────────────────────────────────────
-export function getJinaKey(): string { return localStorage.getItem(KEY_JINA) ?? '' }
-export function setJinaKey(k: string) { localStorage.setItem(KEY_JINA, k.trim()) }
-export function getAnthropicKey(): string { return localStorage.getItem(KEY_ANTHROPIC) ?? '' }
-export function setAnthropicKey(k: string) { localStorage.setItem(KEY_ANTHROPIC, k.trim()) }
+export function getJinaKey(): string { return sessionStorage.getItem(KEY_JINA) ?? '' }
+export function setJinaKey(k: string) { sessionStorage.setItem(KEY_JINA, k.trim()) }
+export function getAnthropicKey(): string { return sessionStorage.getItem(KEY_ANTHROPIC) ?? '' }
+export function setAnthropicKey(k: string) { sessionStorage.setItem(KEY_ANTHROPIC, k.trim()) }
 
 // ── Low-level embedding call ──────────────────────────────────────────────────
 async function embedTexts(
