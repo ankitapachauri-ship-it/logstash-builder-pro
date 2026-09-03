@@ -14,7 +14,9 @@ import {
   EuiPopover,
   EuiContextMenuPanel,
   EuiContextMenuItem,
+  EuiAvatar,
 } from '@elastic/eui'
+import { getCurrentUser, getUserInitials, isDevIdentity } from '../../lib/auth'
 import { useBuilderStore, useActivePipeline, DEFAULT_PIPELINE_SETTINGS } from '../../store/useBuilderStore'
 import type { PipelineSettings } from '../../store/useBuilderStore'
 import { VERSIONS } from '../../lib/logstash-versions'
@@ -62,6 +64,9 @@ export function Toolbar({ onHome, onAIBuild }: { onHome?: () => void; onAIBuild?
   const pipeline = useActivePipeline()
 
   const [downloadOpen, setDownloadOpen] = useState(false)
+  const currentUser = getCurrentUser()
+  const initials = getUserInitials(currentUser)
+  const isDev = isDevIdentity(currentUser)
 
   const versionOptions = VERSIONS.map(v => ({
     value: v,
@@ -209,6 +214,20 @@ export function Toolbar({ onHome, onAIBuild }: { onHome?: () => void; onAIBuild?
                     onClick={toggleDarkMode}
                     aria-label="Toggle dark mode"
                     color="text"
+                  />
+                </EuiToolTip>
+              </EuiFlexItem>
+
+              {/* User identity — shows IAP email in prod, "dev@localhost" locally */}
+              <EuiFlexItem grow={false}>
+                <EuiToolTip content={isDev ? 'Local dev — IAP bypassed' : currentUser}>
+                  <EuiAvatar
+                    name={initials}
+                    size="s"
+                    color={isDev ? '#8B5CF6' : undefined}
+                    style={{ cursor: 'default', opacity: isDev ? 0.7 : 1 }}
+                    initials={initials}
+                    initialsLength={2}
                   />
                 </EuiToolTip>
               </EuiFlexItem>
