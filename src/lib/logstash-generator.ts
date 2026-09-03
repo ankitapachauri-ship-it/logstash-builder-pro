@@ -139,6 +139,15 @@ export interface GenerateResult {
   plaintextSecretWarnings: string[];
 }
 
+/**
+ * F-12: Sanitise user-supplied `if` condition strings.
+ * Strip `}` and `{` so a crafted condition can't close the enclosing block
+ * and inject arbitrary config sections.
+ */
+function sanitizeCondition(raw: string): string {
+  return raw.replace(/[{}]/g, "").trim();
+}
+
 export function generateConfig(state: BuilderState, version: string = LATEST): GenerateResult {
   const ctx: RenderCtx = { keystoreVars: new Set(), warnings: [] };
   const parts: string[] = [];
@@ -157,7 +166,7 @@ export function generateConfig(state: BuilderState, version: string = LATEST): G
     for (const f of state.filters) {
       const plugin = findPlugin("filter", f.pluginId, version);
       if (!plugin) continue;
-      const cond = (f.condition ?? "").trim();
+      const cond = sanitizeCondition(f.condition ?? "");
       const extra = cond ? "  " : "";
       // drop renders as an empty block; everything else via renderPluginBlock.
       const inner =
@@ -176,7 +185,7 @@ export function generateConfig(state: BuilderState, version: string = LATEST): G
     const blocks: string[] = [];
     for (const o of state.outputs) {
       if (!findPlugin("output", o.pluginId, version)) continue;
-      const cond = (o.condition ?? "").trim();
+      const cond = sanitizeCondition(o.condition ?? "");
       const extra = cond ? "  " : "";
       const inner = renderPluginBlock("output", o, ctx, extra, version);
       blocks.push(cond ? `  if ${cond} {\n${inner}\n  }` : inner);
@@ -234,43 +243,5 @@ export function validate(state: BuilderState, version: string = LATEST): Validat
   return errors;
 }
 
-export function highlightConfig(config: string): string {
-  // Very lightweight syntax highlight -> HTML with spans
-  // Comments, block keywords, strings, ${VARS}
-  const escape = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const lines = config.split("\n");
-  let currentBlock: "input" | "filter" | "output" | null = null;
-  return lines
-    .map((line) => {
-      const trimmed = line.trimStart();
-      if (/^(input|filter|output)\s*\{/.test(trimmed)) {
-        const m = trimmed.match(/^(input|filter|output)/);
-        if (m) currentBlock = m[1] as typeof currentBlock;
-      } else if (trimmed === "}") {
-        // could be closing top-level; leave block color as-is
-      }
-      let html = escape(line);
-      // comments
-      html = html.replace(/(#.*)$/g, '<span class="ls-comment">$1</span>');
-      // ${VARS}
-      html = html.replace(/(\$\{[A-Z0-9_]+\})/g, '<span class="ls-var">$1</span>');
-      // strings
-      html = html.replace(/(&quot;[^&]*?&quot;)/g, '<span class="ls-string">$1</span>');
-      // block keywords
-      html = html.replace(
-        /\b(input|filter|output)\b(?=\s*\{)/g,
-        (kw) => `<span class="ls-block ls-${kw}">${kw}</span>`,
-      );
-      // plugin names (lowercase identifier { at start of trimmed line)
-      html = html.replace(/^(\s*)([a-z_][a-z0-9_]*)(\s*\{)/, (_m, sp, name, tail) => {
-        if (["input", "filter", "output", "if"].includes(name)) return `${sp}${name}${tail}`;
-        const cls = currentBlock ? `ls-plugin ls-plugin-${currentBlock}` : "ls-plugin";
-        return `${sp}<span class="${cls}">${name}</span>${tail}`;
-      });
-      // arrow =>
-      html = html.replace(/=&gt;/g, '<span class="ls-arrow">=&gt;</span>');
-      return html;
-    })
-    .join("\n");
-}
+// highlightConfig() removed — F-05/F-15: dead code that returned raw HTML strings,
+// creating a latent XSS sink. Syntax highlighting is handled by EuiCodeBlock.

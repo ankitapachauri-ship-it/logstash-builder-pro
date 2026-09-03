@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     image: logstash-builder:local
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"  # F-10: bind localhost only — no IAP in local Docker
     environment:
       PORT: "8080"
     restart: unless-stopped

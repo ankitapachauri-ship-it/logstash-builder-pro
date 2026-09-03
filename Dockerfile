@@ -14,7 +14,9 @@ RUN yarn build
 
 
 # ── Stage 2: Serve ─────────────────────────────────────────────────────────────
-FROM nginx:1.27-alpine AS runner
+# F-09: nginxinc/nginx-unprivileged runs as uid 101 (non-root) by default.
+#        It also already listens on 8080, matching Cloud Run's expected port.
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runner
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf

@@ -239,11 +239,16 @@ export function PipelinePromptModal({ onClose }: { onClose: () => void }) {
             fullWidth
             rows={4}
             value={prompt}
-            onChange={e => { setPrompt(e.target.value); if (step === 'error') setStep('idle') }}
+            onChange={e => { setPrompt(e.target.value.slice(0, 2000)); if (step === 'error') setStep('idle') }}
             placeholder="e.g. Read nginx access logs from /var/log/nginx/access.log, parse them with grok, add geo enrichment for client_ip, and send to Elasticsearch at localhost:9200"
             disabled={step === 'running'}
           />
         </EuiFormRow>
+        {prompt.length > 1800 && (
+          <EuiText size="xs" color={prompt.length >= 2000 ? 'danger' : 'subdued'} style={{ marginTop: -8, marginBottom: 4 }}>
+            {prompt.length} / 2000 characters
+          </EuiText>
+        )}
 
         {/* Example prompts */}
         {prompt === '' && step === 'idle' && (
