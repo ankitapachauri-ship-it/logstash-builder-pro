@@ -2,7 +2,7 @@
 
 A visual pipeline composer for Elastic Logstash. Build, preview, and download production-ready Logstash configurations without writing a single line of YAML by hand.
 
-**Live app** → https://logstash-builder-282748179141.europe-west1.run.app
+**Live app** → https://logstash-builder.prod.services-hub.elastic.dev/
 
 ---
 
