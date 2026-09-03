@@ -47,7 +47,7 @@ Logstash Builder Pro gives you a drag-and-drop canvas where each Logstash plugin
 
 ```bash
 # Clone
-git clone https://github.com/ankitapachauri-ship-it/logstash-builder-pro.git
+git clone https://github.com/elastic/logstash-builder-pro.git
 cd logstash-builder-pro
 
 # Install
