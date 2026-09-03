@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import {
   EuiModal,
   EuiModalHeader,
@@ -66,6 +66,16 @@ export function PipelinePromptModal({ onClose }: { onClose: () => void }) {
 
   // Apply mode
   const [applyMode, setApplyMode] = useState<ApplyMode>('replace')
+
+  // Cache-cleared banner (auto-hides after 3 s)
+  const [cacheCleared, setCacheCleared] = useState(false)
+  const cacheClearedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleClearCache = useCallback(() => {
+    clearEmbeddingCache()
+    setCacheCleared(true)
+    if (cacheClearedTimerRef.current) clearTimeout(cacheClearedTimerRef.current)
+    cacheClearedTimerRef.current = setTimeout(() => setCacheCleared(false), 3000)
+  }, [])
 
   const abortRef = useRef(false)
 
@@ -203,12 +213,19 @@ export function PipelinePromptModal({ onClose }: { onClose: () => void }) {
             <EuiButtonEmpty
               size="xs"
               flush="left"
-              onClick={() => { clearEmbeddingCache(); alert('Embedding cache cleared. Next generation will re-embed the plugin catalog.') }}
+              onClick={handleClearCache}
             >
               Clear embedding cache
             </EuiButtonEmpty>
           </EuiText>
         </EuiAccordion>
+
+        {cacheCleared && (
+          <>
+            <EuiSpacer size="s" />
+            <EuiCallOut color="success" iconType="check" size="s" title="Embedding cache cleared — next generation will re-index the plugin catalog." />
+          </>
+        )}
 
         <EuiSpacer size="m" />
 
